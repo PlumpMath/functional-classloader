@@ -18,7 +18,18 @@
   version
 - E.g., A uses B1, C uses B2. A cannot use B2, C cannot use B1.
 - How do we solve this!? Why do we need to solve this!?
+** Making things work
+- Sometimes, you have to shim to make things work
+- What if you write a plugin that dynamically loads some version of a
+  dependency?
+** Option 1: Make a new classloader with access to the JAR you want
+- Example with classlojure
+** Option 2: Make a new classloader and resolve dependencies with alembic
+- Example with alembic
+** Option 3: Use boot pods to resolve dependencies with boot
+- Example with boot pods
 ** Side-talk: how to avoid this problem as an API producer
+- From Rich Hickey...you know...the clojure guy
 - For open source projects, never remove anything from your public API
   * Only grow your software, meaning you
     + Optionally accept less inputs for the same functionality
@@ -32,7 +43,3 @@
 - If your function names are good, use a new namespace
 - Otherwise, use new function names
 - Anything that would be breakage in the API contract should be something NEW
-** Back to classloaders
-- Sometimes, you have to shim to make things work
-- What if you write a plugin that dynamically loads some version of a
-  dependency?
