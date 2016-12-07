@@ -1,0 +1,38 @@
+* "Functional" classloaders
+** Mutable, but append-only
+- We can add classes, but can't remove them
+- Can only have one instance of any fully qualified (package + name) class
+- In order to remove something from the classloader, have to garbage-collect the
+  old one and make the whole thing again without the thing you want to remove
+** What does that sound like?
+- Maybe we can build this in a composable way. Can we apply functional
+  programming concepts to make a context for our code to run successfully?
+** URL Classloader
+- Uses a list of JAR URLs, loads everything inside of them on the classpath
+- Can dynamically add more JARs, so long as there are no collisions
+** Dependency collisions
+- At runtime, you need a context for the code you wrote to succeed, typically
+  using the dependencies in a configuration that has never been done before
+- Say someone introduced API breakage in a library, and went to another major
+  version...and you're using 2 different libraries, only one using that major
+  version
+- E.g., A uses B1, C uses B2. A cannot use B2, C cannot use B1.
+- How do we solve this!? Why do we need to solve this!?
+** Side-talk: how to avoid this problem as an API producer
+- For open source projects, never remove anything from your public API
+  * Only grow your software, meaning you
+    + Optionally accept less inputs for the same functionality
+    + Add new functions
+    + Fix bugs
+  * Don't break your software, meaning you
+    + DON'T require more inputs for the same functionality
+    + DON'T remove functions
+    + DON'T provide less functionality for the same named function
+** What if I want to redesign and make a new fresh API?
+- If your function names are good, use a new namespace
+- Otherwise, use new function names
+- Anything that would be breakage in the API contract should be something NEW
+** Back to classloaders
+- Sometimes, you have to shim to make things work
+- What if you write a plugin that dynamically loads some version of a
+  dependency?
