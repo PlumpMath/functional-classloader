@@ -1,14 +1,31 @@
 * "Functional" classloaders
+** What's a classloader?
+- The Java Virtual Machine operates on Operating System-independent byte code
+  (rather than machine instructions)
+- This means the actual code to run on the physical machine gets compiled
+  dynamically (i.e., at runtime)
+- To create a context in which different classes can run together on the JVM,
+  need to use a classloader
+- E.g., all of the "java.lang" classes are loaded before your application so
+  that they are available for use
+** When do classes get loaded?
+- Loaded when they are needed, whether for information (calling .class or any
+  static method like Math/abs) or creating instances (using "new")
+- The classloader includes an implementation of how to define/find classes,
+  packages, native libraries, and resources
 ** Mutable, but append-only
-- We can add classes, but can't remove them
+- We can add classes to a classloader by loading them, but can't remove them
 - Can only have one instance of any fully qualified (package + name) class
 - In order to remove something from the classloader, have to garbage-collect the
   old one and make the whole thing again without the thing you want to remove
 ** What does that sound like?
 - Maybe we can build this in a composable way. Can we apply functional
   programming concepts to make a context for our code to run successfully?
+- The answer is yes (oh wait, that spoils the surprise), but the libraries don't
+  perform very well
 ** URL Classloader
-- Uses a list of JAR URLs, loads everything inside of them on the classpath
+- Uses a list of JAR URLs, loads everything inside of them onto the classpath as
+  needed
 - Can dynamically add more JARs, so long as there are no collisions
 ** Dependency collisions
 - At runtime, you need a context for the code you wrote to succeed, typically
@@ -24,22 +41,64 @@
   dependency?
 ** Option 1: Make a new classloader with access to the JAR you want
 - Example with classlojure
+
+
+
+- Classlojure requires you to know the URL location of the JAR you are consuming
+  and the URLs of all dependencies of that JAR.
+** More on classlojure
+- Classlojure allows you to make a fresh classloader and give fresh dependencies
+- Requires all JARs upfront (at classloader creation time)
+- Doesn't handle transitive dependencies (the things a JAR needs beyond itself)
 ** Option 2: Make a new classloader and resolve dependencies with alembic
 - Example with alembic
+
+
+- Alembic uses a library called "pomegranate" (based on Eclipse's Aether) in order
+  to find artifact dependencies in a repository
+- It downloads and caches these locally if they are not already present
+** More on alembic
+- It's SOOOOO slow
+- The community knows it's slow, and they want to make it better
+- However, it does work and performs super voodoo magicks
 ** Option 3: Use boot pods to resolve dependencies with boot
 - Example with boot pods
-** Side-talk: how to avoid this problem as an API producer
-- From Rich Hickey...you know...the clojure guy
-- For open source projects, never remove anything from your public API
+
+
+- clj-boot's pods also use pomegranate to load all artifact dependencies from a
+  repository
+- Also provides a handy API for setting up a pool of pods, since they are aware
+  that it takes "forever" to get them up and running
+** More on boot pods
+- Very nice if you have a boot app and know what dependencies you expect to need
+  dynamically
+- Gives you a place to mess up the classpath and churn out a new one
+- Plagued by the same slowness of alembic due to its own transitive dependency
+** Side-talk: how to avoid the "Major Version" problem as an API producer
+- From Rich Hickey...you know...the Clojure guy
+- For open source projects, he suggests never removing anything from your public
+  API once you are out of the alpha phase
   * Only grow your software, meaning you
     + Optionally accept less inputs for the same functionality
     + Add new functions
     + Fix bugs
+    + Change performance (ideally for the better)
   * Don't break your software, meaning you
     + DON'T require more inputs for the same functionality
     + DON'T remove functions
-    + DON'T provide less functionality for the same named function
+    + DON'T provide less functionality for the same namespaced function
 ** What if I want to redesign and make a new fresh API?
 - If your function names are good, use a new namespace
 - Otherwise, use new function names
-- Anything that would be breakage in the API contract should be something NEW
+- Or use a combination of both
+- Or add additional arities to your existing functions
+- Anything that would be breakage in the current API contract should be
+  something NEW
+** Won't that make my code huge?
+- Your code will grow and evolve over time
+- You can still do bug and performance fixes as you learn new things
+** The end?
+- classlojure: https://github.com/flatland/classlojure
+- alembic: https://github.com/pallet/alembic
+- boot-clj: https://github.com/boot-clj/boot
+- Rich Hickey talk "Spec-ulation": https://www.youtube.com/watch?v=oyLBGkS5ICk
